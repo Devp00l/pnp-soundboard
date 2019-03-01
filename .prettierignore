@@ -1,0 +1,4 @@
+package-lock.json
+*.min.js
+*.min.css
+sounds.json

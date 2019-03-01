@@ -2,8 +2,7 @@ var context;
 var bufferLoader;
 
 // default options
-var stopOnChange = true;
-var allowOverlap = false;
+var repeat = false; // Toggled by repeat button
 
 window.onload = init;
 
@@ -13,67 +12,16 @@ var bList;
 // Holds all active buffers. Is used so that we can stop them at all times
 var activeBuffers = [];
 
+// mp3 files and their ids
+var allSounds = {}; // Will be replaced with data contained in sounds.json
+var markedIds = [];
+var searchResults = [];
+var soundfiles = []; // will be extracted from allSounds
+var soundIds = []; // will be extracted from allSounds
+var cats = []; // will be extracted from allSounds
+var currentCat = ""; // will be replaced with first cat on load
 
-// mp3 files and sources
-var soundfiles = ["2SAD4ME.mp3",
-                           "AIRHORN.mp3",
-                           "Darude - Dankstorm.mp3",
-                           "HITMARKER.mp3",
-                           "MOM GET THE CAMERA.mp3",
-                           "Oh Baby A Triple.mp3",
-                           "OMG TRICKSHOT CHILD.mp3",
-                           "OOOOOOOOHMYGOOOOD.mp3",
-                           "SANIC.mp3",
-                           "SKRILLEX Scary.mp3",
-                           "SMOKE WEEK EVERYDAY.mp3",
-                           "WOMBO COMBO.mp3",
-                           "DAMN SON WHERED YOU FIND THIS.mp3",
-                           "Whatcha Say.mp3",
-                           "2SED4AIRHORN.mp3",
-                           "tactical nuke.mp3",
-                           "intervention 420.mp3",
-                           "AIRPORN.mp3",
-                           "DEDOTADED WAM.mp3",
-                           "DAMN SON WOW.mp3",
-                           "GET NOSCOPED.mp3",
-                           "AIRHORN SONATA.mp3",
-                           "wow ;).mp3",
-                           "SHOTS FIRED.mp3",
-                           "NEVER DONE THAT.mp3",
-                           "SPOOKY.mp3"];
-
-var sourcefiles = ["https://www.youtube.com/watch?v=JSnR80kY0m0",
-                            "https://www.youtube.com/watch?v=IpyingiCwV8",
-                            "https://www.youtube.com/watch?v=u9ymUX1fJLw",
-                            "https://www.dropbox.com/s/3nh8u7nrql96k48/HITMARKER.wav",
-                            "https://www.youtube.com/watch?v=gl33V3fh7k0",
-                            "https://www.youtube.com/watch?v=M6PbdJiAK84",
-                            "https://www.youtube.com/watch?v=auAvDJlMOQ8",
-                            "https://www.youtube.com/watch?v=b_yMiLwxae0",
-                            "https://www.youtube.com/watch?v=hU7EHKFNMQg",
-                            "https://www.youtube.com/watch?v=WSeNSzJ2-Jw",
-                            "https://www.youtube.com/watch?v=KlujizeNNQM",
-                            "https://www.youtube.com/watch?v=pD_imYhNoQ4",
-                            "https://www.youtube.com/watch?v=s_x_4UElTDI",
-                            "https://www.youtube.com/watch?v=thhaf-bKWyg",
-                            "https://soundcloud.com/gay-bagel/sad-airhorn",
-                            "https://www.youtube.com/watch?v=cLI8wtbCIkM",
-                            "https://www.youtube.com/watch?v=9aGGIwOXze4",
-                            "https://www.youtube.com/watch?v=Ks5bzvT-D6I",
-                            "https://www.youtube.com/watch?v=wsO-Td0hqXo",
-                            "https://www.youtube.com/watch?v=Se8Yq56tSLc",
-                            "https://www.youtube.com/watch?v=1mz6y526yCk",
-                            "https://www.youtube.com/watch?v=8YHqals6TBQ&t=64",
-                            "https://www.youtube.com/watch?v=FzjtPtOH-Hg",
-                            "https://www.youtube.com/watch?v=Y8bGl331RsQ",
-                            "https://www.youtube.com/watch?v=bKmBEdY35mA",
-                            "https://www.youtube.com/watch?v=rbBX6aEzEz8"];
-
-
-
-
-
-
+var hotkeys = []; // holds the number representations of pressed keys that can be used as hotkeys
 
 // buffer loader class
 
@@ -85,35 +33,45 @@ function BufferLoader(context, urlList, callback) {
   this.loadCount = 0;
 }
 
+function updateProgress(bar, loading) {
+  loading = Math.floor(loading * 100);
+  bar.attr("aria-valuenow", loading);
+  bar.attr("style", `width: ${loading}%`);
+  bar.html(loading + "%");
+  if (loading === 100) {
+    bar.removeClass("active");
+  }
+}
+
 BufferLoader.prototype.loadBuffer = function(url, index) {
   // Load buffer asynchronously
-  var request = new XMLHttpRequest();
+  const loader = this;
+  const bar = $("#loading-bar2");
+  const request = new XMLHttpRequest();
   request.open("GET", url, true);
   request.responseType = "arraybuffer";
-
-  var loader = this;
-
-  request.onload = function() {
+  request.onload = () => {
     // Asynchronously decode the audio file data in request.response
     loader.context.decodeAudioData(
       request.response,
-      function(buffer) {
+      buffer => {
         if (!buffer) {
-          alert('error decoding file data: ' + url);
+          alert("error decoding file data: " + url);
           return;
         }
         loader.bufferList[index] = buffer;
-        if (++loader.loadCount == loader.urlList.length)
+        updateProgress(bar, (loader.loadCount + 1) / loader.urlList.length);
+        if (++loader.loadCount == loader.urlList.length) {
           loader.onload(loader.bufferList);
+        }
       },
-      function(error) {
-        console.error('decodeAudioData error', error);
+      error => {
+        console.error("decodeAudioData error", error);
       }
     );
   };
-
-  request.onerror = function(e) {
-    alert('BufferLoader: XHR error');
+  request.onerror = e => {
+    alert("BufferLoader: XHR error");
     console.log(e);
   };
 
@@ -121,225 +79,409 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
 };
 
 BufferLoader.prototype.load = function() {
-  for (var i = 0; i < this.urlList.length; ++i)
-      this.loadBuffer(this.urlList[i], i);
+  const bar = $("#loading-bar");
+  for (let i = 0; i < this.urlList.length; ++i) {
+    this.loadBuffer(this.urlList[i], i);
+    updateProgress(bar, (i + 1) / this.urlList.length);
+  }
 };
-
 // END bufferloader class
 
 // BEGIN custom code
-
-
-function generatePanelLinks(idName, linkfiles, modifyLinktext) {
-
-  var links = $("#" + idName).append('<ul class="list-group">');
-
-    $.each(soundfiles, function (i) {
-        links.append("<li class=\"list-group-item\"><a href=\"" +
-                       linkfiles[i] + "\" target=\"_blank\">" + 
-                       modifyLinktext(soundfiles[i]) + "</a></li>");
-    });
-
-}
-
-
-function generateSourceLinks() {
-  generatePanelLinks("sourcelinks", sourcefiles, function (s) { return s.slice(0, -4); });
-}
-
-
-function generateDownloadLinks() {
-  // NOTICE: Maybe I have to change the linkfiles to an absolute path.
-  generatePanelLinks("downloadlinks", soundfiles, function (s) { return s; });
-}
-
-
 function loadFilesInMemory() {
-    window.AudioContext = window.AudioContext || window.webkitAudioContext;
-    context = new AudioContext();
+  window.AudioContext = window.AudioContext || window.webkitAudioContext;
+  context = new AudioContext();
 
-    bufferLoader = new BufferLoader(
-        context,
-        soundfiles,
-        finishedLoading
-    );
+  bufferLoader = new BufferLoader(context, soundfiles, finishedLoading);
 
-    bufferLoader.load();
+  bufferLoader.load();
 }
 
+function makeSoundPath(cat, filename) {
+  return ["sounds", cat, filename].join("/");
+}
+
+function fullPathCat(cat) {
+  return allSounds[cat].map(fn => makeSoundPath(cat, fn));
+}
+
+function fullPath() {
+  let paths = [];
+  cats.forEach(key => (paths = paths.concat(fullPathCat(key))));
+  return paths;
+}
+
+function fullIdCat(cat) {
+  return allSounds[cat].map((fn, i) => usableCat(cat, fn) + "-" + i);
+}
+
+function fullIds() {
+  let ids = [];
+  cats.forEach(key => (ids = ids.concat(fullIdCat(key))));
+  return ids;
+}
+
+function gotSoundJson(json) {
+  allSounds = json;
+  cats = Object.keys(json);
+  soundfiles = fullPath();
+  soundIds = fullIds();
+  createCategoryTabs();
+  setCurrentCat(cats[0]);
+  loadFilesInMemory();
+  cats.push("search");
+}
 
 function init() {
-  generateSourceLinks();
-  generateDownloadLinks();
-  loadFilesInMemory();
+  $.getJSON("js/customisations.json", json => {
+    $("#soundboard-title").text(json.title);
+    $("#soundboard-head-title").text(json.title);
+  });
+  $.getJSON("sounds.json", gotSoundJson);
+  $("#search").on("input", function() {
+    search($(this).val());
+  });
 }
 
+function search(s) {
+  let fin = soundfiles;
+  s.toLowerCase()
+    .split(" ")
+    .forEach(term => (fin = searchTerm(term, fin)));
+  createSearchSoundButtons(fin);
+  createCategoryButttonBadges("search");
+  searchResults = fin;
+  return fin;
+}
+
+function searchTerm(s, arr) {
+  return arr.filter(sf => sf.toLowerCase().includes(s));
+}
 
 function generateListOfHotKeys() {
-    var hotkeys = [];
-  for(var i = 48; i <= 57; i++) {
-        hotkeys.push(i);
+  for (let i = 48; i <= 57; i++) {
+    hotkeys.push(i);
   }
-    for(var i = 97; i <= 122; i++) {
-        hotkeys.push(i);
+  for (let i = 97; i <= 122; i++) {
+    hotkeys.push(i);
   }
-  return hotkeys;
-}
-  
-
-
-function createHotkeys() {
-  var hotkeys = generateListOfHotKeys();
-
-    $.each(soundfiles, function (i) {
-        var btn = document.getElementById(i);
-        var badge = document.createElement("span");
-        badge.classList.add("badge", "hotkey-badge");
-        badge.style.marginLeft = "1.2em";
-        badge.innerHTML = String.fromCharCode(hotkeys[i]);
-        btn.appendChild(badge);
-    });
+  for (let i = 65; i <= 90; i++) {
+    hotkeys.push(i);
+  }
 }
 
-function createButtonWrapper (){
-  var wrapper = document.createElement("div");
-  $(wrapper).addClass('col-xs-12 col-sm-6 col-md-4');
+function createHotkeyElements() {
+  generateListOfHotKeys();
+  cats.forEach(cat => {
+    createCategoryButttonBadges(cat);
+  });
+}
+
+function createBadge(catClass, i) {
+  const badge = document.createElement("span");
+  badge.classList.add("badge", "hotkey-badge", catClass + "-key");
+  badge.style.marginLeft = "1.2em";
+  badge.innerHTML = String.fromCharCode(hotkeys[i]);
+  return badge;
+}
+
+function getTabContentId(cat) {
+  return usableCat(cat) + "-tab-content";
+}
+
+function createCategoryButttonBadges(cat) {
+  const catClass = usableCat(cat);
+  $("#" + getTabContentId(cat) + " button").each((i, e) => {
+    $(e).append(createBadge(catClass, i));
+  });
+}
+
+function createButtonWrapper() {
+  const wrapper = document.createElement("div");
+  $(wrapper).addClass("col-xs-12 col-sm-6 col-md-4");
   return wrapper;
 }
 
-function cycleButtonColors(i){
-  var options = ['primary','success','info','warning','danger'];
-  var random = options[Math.floor(Math.random() * options.length)];
-  var selected = options[i%options.length];
-  return selected;
+function usableCat(cat) {
+  return cat.replace(/[^0-9a-zA-Z]/, "-");
 }
 
-function displayPlayButtons () {
-    $.each(soundfiles, function (i) {
-        var btn = document.createElement("button");
-        var buttonColor = 'btn-' + cycleButtonColors(i);
-        btn.type = "button";
-        btn.innerHTML = "<strong>" + soundfiles[i].slice(0,-4) + "</strong>";
-        btn.id = i;
-        btn.onclick = function() { playComposition(bList[this.id]); };
-        btn.classList.add("btn", buttonColor, "btn-block", "spaced-button");
-        
-        var wrapper = createButtonWrapper();
-        wrapper.appendChild(btn);
-        document.getElementById("buttons").appendChild(wrapper);
+function getBufferFromPath(path) {
+  return bList[soundfiles.findIndex(f => f === path)];
+}
+
+function playSound(path, id) {
+  const buffer = getBufferFromPath(path);
+  markSoundPlaying(id);
+  if (!repeat) {
+    window.setTimeout(() => markSoundPlaying(id, true), buffer.duration * 1000);
+  }
+  play(buffer, document.getElementById("gain").value);
+}
+
+function markSoundPlaying(id, stopped) {
+  const button = $("#" + id);
+  const notPlaying = "btn-default";
+  const playing = "btn-danger";
+  if (stopped) {
+    markedIds.splice(markedIds.indexOf(id), 1);
+    if (!markedIds.includes(id)) {
+      button.removeClass(playing);
+      button.addClass(notPlaying);
+    }
+  } else {
+    markedIds.push(id);
+    button.addClass(playing);
+    button.removeClass(notPlaying);
+  }
+}
+
+// {id, name, class, path}
+function createSoundButton(config) {
+  const btn = document.createElement("button");
+  const buttonColor = "btn-default"; // or info
+  const buffer = getBufferFromPath(config.path);
+  btn.title = [config.name, " (", Math.round(buffer.duration), "s)"].join("");
+  btn.type = "button";
+  if (config.name.length > 33) {
+    config.name = config.name.slice(0, 30) + "...";
+  }
+  btn.innerHTML = "<strong>" + config.name + "</strong>";
+  btn.id = config.id;
+  btn.onclick = function() {
+    playSound(config.path, config.id);
+  };
+  btn.classList.add(
+    "btn",
+    config.class,
+    buttonColor,
+    "btn-block",
+    "spaced-button"
+  );
+  const wrapper = createButtonWrapper();
+  wrapper.appendChild(btn);
+  return wrapper;
+}
+
+function setCat(cat) {
+  currentCat = cat;
+}
+
+function createCatgoryTab(cat) {
+  const catClass = usableCat(cat);
+  const tabButtonId = catClass + "-tab-btn";
+  const tabContentId = getTabContentId(cat);
+  const tabButton = $(
+    "<li><a onclick=\"setCat('" +
+      cat +
+      '\')" href= "#' +
+      tabContentId +
+      '" id="' +
+      tabButtonId +
+      '" data-toggle="tab">' +
+      cat.toUpperCase() +
+      "</a></li>"
+  );
+  const tabContent = $(
+    '<div class="tab-pane" id="' + tabContentId + '"></div>'
+  );
+  const tabButtons = $("#tabs-buttons");
+  const tabContents = $("#tabs-contents");
+  tabButtons.append(tabButton);
+  tabContents.append(tabContent);
+}
+
+function createCategoryTabs() {
+  cats.forEach(cat => createCatgoryTab(cat));
+  createCatgoryTab("search");
+}
+
+function internalCategorySoundButtons(tabContentId, files, btnConfig) {
+  files
+    .map((fn, i) => {
+      return createSoundButton(btnConfig(fn, i));
+    })
+    .forEach(btn => {
+      const buttons = document.getElementById(tabContentId);
+      buttons.appendChild(btn);
     });
 }
 
-
-function setUpToggleHotkeys() {
-    $("#togglehotkeys").bind("click", function () {
-        $("span.badge").toggleClass("hidden");
-        $(this).text( $(this).text() == "Show Hotkeys" ? "Hide Hotkeys" : "Show Hotkeys");
-    });
+function createCategorySoundButtons(cat, files) {
+  const catClass = usableCat(cat);
+  internalCategorySoundButtons(getTabContentId(cat), files, (fn, i) => ({
+    id: catClass + "-" + i,
+    class: catClass,
+    name: fn.slice(0, -4),
+    path: makeSoundPath(cat, fn)
+  }));
 }
 
-
-function addKeyboardControls() {
-    $(document).keypress(function (e) {
-        // for 0 to 9
-        if (e.which >= 48 && e.which <= 57) {
-            $("#" + (e.which - 48)).click();
-        }
-        // for a to z
-        else if (e.which >= 97 && e.which <= 122)
-        {
-            $("#" + (e.which - 87)).click();
-        }
-    });
+function createSearchSoundButtons(files) {
+  tabContentId = getTabContentId("search");
+  $("#" + tabContentId).empty();
+  internalCategorySoundButtons(tabContentId, files, (path, i) => ({
+    id: "search-" + i,
+    class: "search",
+    name: path
+      .split("/")
+      .pop()
+      .slice(0, -4),
+    path: path
+  }));
 }
 
+function displayPlayButtons() {
+  Object.keys(allSounds).forEach(key =>
+    createCategorySoundButtons(key, allSounds[key])
+  );
+}
 
 function loadUIElements() {
-    $("#loading").hide();
+  $("#loading").hide();
 
   displayPlayButtons();
-    createHotkeys();
-  setUpToggleHotkeys();
-  addKeyboardControls();
+  createHotkeyElements();
 }
 
-
-
 function finishedLoading(bufferList) {
-  // HACK: Makes the parameter global so that we get access to it. 
+  // HACK: Makes the parameter global so that we get access to it.
   // It is implicitly loaded
-    bList = bufferList;
-  
+  bList = bufferList;
+
   loadUIElements();
 }
 
-function IsNumeric(input)
-{
-    return (input - 0) == input && (''+input).trim().length > 0;
+function IsNumeric(input) {
+  return input - 0 == input && ("" + input).trim().length > 0;
 }
 
-
-function play(buffer, drive, gain) {
-  var source = context.createBufferSource();
-  source.buffer = buffer;
-
-  // check if we are allowing sounds to overlap
-  if (!allowOverlap){
-    stopPlaying();
+function toggleRepeat() {
+  repeat = !repeat;
+  const btn = $("#repeat");
+  const defaultClasses = "btn-warning";
+  const pressedClasses = "active btn-danger";
+  if (repeat) {
+    btn.removeClass(defaultClasses);
+    btn.addClass(pressedClasses);
+  } else {
+    btn.removeClass(pressedClasses);
+    btn.addClass(defaultClasses);
   }
+}
 
+function play(buffer, gain) {
+  const source = context.createBufferSource();
+  source.buffer = buffer;
+  if (repeat) {
+    source.loop = true;
+    toggleRepeat();
+  }
   activeBuffers.push(source);
 
-  var gainNode = context.createGain();
-  
-  var adjustedGain = IsNumeric(gain) && gain > 0 ? gain / 10 : 0;
-
-  gainNode.gain.value = adjustedGain;
+  const gainNode = context.createGain();
+  gainNode.gain.value = IsNumeric(gain) && gain > 0 ? gain / 100 : 0;
   activeBuffers.push(gainNode);
-  
+
   source.connect(gainNode);
-  
-  if (drive === 0)
-  {
-    gainNode.connect(context.destination); 
-
-  } else {
-    // workaround for using overdrive which is a bit low in volume
-    var overdrive = new Overdrive(context);
-    overdrive.drive = drive;
-    overdrive.color = 8000;
-    gainNode.connect(overdrive.input);
-
-    var gain2 = context.createGain();
-    overdrive.connect(gain2);
-    activeBuffers.push(gain2);
-    
-    // apply second gain of 2.6
-    gain2.gain.value = 2.6;
-    gain2.connect(context.destination);
-  }
-  
+  gainNode.connect(context.destination);
   source.start(0);
 }
 
-
-
-function playComposition(buf) {
-  var drive = document.getElementById("drive").value / 10.0;
-  var gain = document.getElementById("gain").value;
-  play(buf, drive, gain);
-}
-
-function stopPlaying (){
-  for (var i = 0; i < activeBuffers.length; i++) {
-      activeBuffers[i].disconnect(0);
+function stopPlaying() {
+  for (let i = 0; i < activeBuffers.length; i++) {
+    activeBuffers[i].disconnect(0);
   }
+  markedIds.slice(0).forEach(id => {
+    markSoundPlaying(id, true);
+  });
   activeBuffers = [];
 }
 
+function nextCat() {
+  const nextIndex = cats.indexOf(currentCat) + 1;
+  setCurrentCat(cats[nextIndex % cats.length]);
+}
+
+function previousCat() {
+  const previousIndex = cats.indexOf(currentCat) + cats.length - 1;
+  setCurrentCat(cats[previousIndex % cats.length]);
+}
+
+function setCurrentCat(cat) {
+  currentCat = cat;
+  $("#" + usableCat(cat) + "-tab-btn").click();
+}
+
+function playRandom() {
+  const isSearch = currentCat === "search";
+  const sounds = isSearch ? searchResults : allSounds[currentCat];
+  const randIndex = Math.floor(Math.random() * sounds.length);
+  const randomSound = sounds[randIndex];
+  playSound(
+    isSearch ? randomSound : makeSoundPath(currentCat, randomSound),
+    usableCat(currentCat) + "-" + randIndex
+  );
+}
+
+function hotButton(keyCode) {
+  const index = hotkeys.indexOf(keyCode);
+  if (index !== -1) {
+    $("#" + usableCat(currentCat) + "-" + index).click();
+  }
+}
+
+function volumeChange(changeBy) {
+  const gain = document.getElementById("gain");
+  let val = parseInt(gain.value, 10) + changeBy;
+  if (val > 100) {
+    val = 100;
+  } else if (val < 0) {
+    val = 0;
+  }
+  gain.value = val;
+}
+
 // hitting escape or enter will stop all sounds
-document.onkeyup = function(e) {
-  if (e.keyCode == 13 || e.keyCode == 27) {
+document.onkeydown = function(e) {
+  const code = e.keyCode;
+  const target = e.target;
+  const key = e.key;
+
+  if (code === 13) {
+    // Enter
+    playRandom();
+  }
+
+  if (target.tagName === "INPUT") {
+    if (target.id === "search") {
+      setCurrentCat(cats[cats.length - 1]);
+    }
+    return;
+  }
+
+  if ([27, 8].includes(code)) {
+    // Escape, Backspace
     stopPlaying();
+  } else if (code === 17) {
+    // Control
+    toggleRepeat();
+  } else if (code === 37) {
+    // Arrow Left
+    previousCat();
+  } else if (code === 39) {
+    // Arrow Right
+    nextCat();
+  } else if (code === 38) {
+    // Arrow Up
+    volumeChange(1);
+  } else if (code === 40) {
+    // Arrow Down
+    volumeChange(-1);
+  } else if (code === 32) {
+    // Space
+    $("#search").focus();
+  } else if (key.length === 1) {
+    hotButton(key.charCodeAt(0));
   }
 };

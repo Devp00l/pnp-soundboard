@@ -1,65 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-   <meta charset="utf-8">
-   <title>Montageparodies soundboard - MLG 420 xXx nosc0pe blaze it soundboard</title>
-   <script src="js/jquery.min.js"></script>
-   <script src="js/overdrive.js"></script>
-   <script src="js/board.js"></script>
-   <script src="js/bootstrap.min.js"></script>
-   <script src="js/control-sync.js"></script>
-   <link href="css/bootstrap.min.css" rel="stylesheet">
-   <link href="css/bootstrap-theme.min.css" rel="stylesheet">
-</head>
-<body>
-<a href="https://github.com/tst/mlg-soundboard" target="_blank"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+  <head>
+    <meta charset="utf-8" />
+    <title id="soundboard-head-title"> </title>
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="js/board.js"></script>
+    <script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <link
+      href="node_modules/bootstrap/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="node_modules/bootstrap/dist/css/bootstrap-theme.min.css"
+      rel="stylesheet"
+    />
+    <link href="css/custom.css" rel="stylesheet" />
+  </head>
+  <body>
     <div class="container">
-      <div>
-       <h1>Montageparodies MLG 420 xXx nosc0pe blaze it soundboard</h1>
-       <p class="lead">Adjust the gain (volume) and drive (distortion) for maximum kill streaks</p>
-        <div class="alert alert-info" style="font-size: 1.2em"> <span style="font-size: 2em" class="glyphicon glyphicon-hand-right"></span> <strong>Protip:</strong> You can use your keyboard to activate the sounds: starting with 0, 1, ..., y and z.
-        <p>Do you want to hide the hot keys? Press <button type="button" class="btn btn-success" id="togglehotkeys">Hide Hotkeys</button></p>
+      <h1 id="soundboard-title"></h1>
+      <div id="controls">
+        <form class="form-inline">
+          <div class="form-group" id="volume-control">
+            <div class="input-group">
+              <span
+                class="input-group-addon glyphicon glyphicon-volume-up"
+                title="Volume"
+              ></span>
+              <input
+                type="number"
+                class="form-control"
+                title="Volume - increase [Arrow Up] - decrease [Arrow Down]"
+                id="gain"
+                name="gain"
+                min="0"
+                max="100"
+                value="10"
+              />
+            </div>
+          </div>
+          <div class="btn-group" role="group">
+            <a
+              class="btn btn-danger"
+              title="Stops all sounds [esc] or [backspace]"
+              onclick="stopPlaying()"
+            >
+              <i class="glyphicon glyphicon-stop"></i>
+            </a>
+            <a
+              class="btn btn-primary"
+              title="Play random sound [enter]"
+              onclick="playRandom()"
+            >
+              <i class="glyphicon glyphicon-random"></i>
+            </a>
+            <a
+              class="btn btn-warning"
+              id="repeat"
+              title="Repeat next sound forever [control triggers button]"
+              onclick="toggleRepeat()"
+            >
+              <i class="glyphicon glyphicon-repeat"></i>
+            </a>
+            <a
+              class="btn btn-default"
+              title="Switch to previous category [Arrow left]"
+              onclick="previousCat()"
+            >
+              <i class="glyphicon glyphicon-arrow-left"></i>
+            </a>
+            <a
+              class="btn btn-default"
+              title="Switch to next category [Arrow right]"
+              onclick="nextCat()"
+            >
+              <i class="glyphicon glyphicon-arrow-right"></i>
+            </a>
+          </div>
+        </form>
+        <p></p>
+        <div class="form-group" id="search-control">
+          <div class="input-group">
+            <span
+              class="input-group-addon glyphicon glyphicon-search"
+              title="Search"
+            ></span>
+            <input
+              type="text"
+              title="Search"
+              class="form-control"
+              id="search"
+              name="search"
+              placeholder="Search..."
+            />
+          </div>
         </div>
-        <div class="alert alert-info" style="font-size: 1.2em"> <span style="font-size: 1.6em" class="glyphicon glyphicon-hand-right"></span> <strong>Protip 2:</strong> You can stop all sounds pressing <kbd>esc</kbd> or <kbd>enter</kbd> </div>
+      </div>
 
-        <h2>Controls</h2>
-        <p><strong>Gain</strong> (<span id="gainValue">1</span>)
-        <input type="range" id="gain" name="gain" min="0" max="100" value="1"></p>
-        <p><strong>Drive</strong> (<span id="driveValue">0</span>)
-        <input type="range" id="drive" name="drive" min="0" max="10" value="0"></p>
-        <input type="checkbox" id="stop" name="stop-on-change" checked="true"> Stop playback on value change?
-        <input type="checkbox" id="overlap" name="allow-overlap"> Allow sound to overlap? (killstreak confirmed)
-
-        <h2>Dank Memes</h2>
-        <div id="buttons" class="row">
-            <div class="row" id="loading"><div class="col-sm-2 col-sm-offset-5"><img src="loading.gif" /></div></div>
-        </div>
-        
-        <h2>SAUCE</h2>
-        <div class="row">
-          <div class="col-sm-6"> 
-            <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Sources</h3>
+      <p></p>
+      <div id="tabs" class="container">
+        <ul id="tabs-buttons" class="nav nav-tabs"></ul>
+        <p></p>
+        <div id="tabs-contents" class="tab-content clearfix"></div>
+      </div>
+      <div id="buttons" class="row">
+        <div class="row" id="loading">
+          <div>
+            Loading files into memory:
+            <div class="progress">
+              <div
+                id="loading-bar"
+                class="progress-bar progress-bar-striped active"
+                role="progressbar"
+                aria-valuenow="0"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                style="width: 0%"
+              ></div>
             </div>
-            <div class="panel-body" id="sourcelinks">
-                    <p>Do you want the sources to this sick montage parody sounds m8?</p>
+            Decode files into buffer:
+            <div class="progress">
+              <div
+                id="loading-bar2"
+                class="progress-bar progress-bar-striped active"
+                role="progressbar"
+                aria-valuenow="0"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                style="width: 0%"
+              ></div>
             </div>
-            </div>
-        </div>
-
-          <div class="col-sm-6"> 
-            <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">Download links</h3>
-            </div>
-                <div class="panel-body" id="downloadlinks">
-                    <p>Or rather download montage parody sick music and sounds including screaming?</p>
-                </div>
-            </div>
+          </div>
         </div>
       </div>
     </div>
-</body>
+  </body>
 </html>
-   

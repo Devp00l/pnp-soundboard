@@ -1,40 +1,94 @@
-# MLG Soundboard using Web Audio API
+# PnP Soundboard using Web Audio API
 
 ## Description
-This features a simple soundboard using Web Sound API and distortion effects. 
-You can find the distortion effects on https://github.com/web-audio-components/overdrive.
+This soundboard offers the following features:
+
+* Search
+* Dynamic hotkeys (up to 61 buttons per category)
+* Volume regulation
+* Categories
+* Easy to customize
+* Can be used with keyboard only
+* Works OS independent
+
+My focus of this board is to be able to play sounds during pen and paper as quickly as possible
+without being distracted because I have to search manually for the right sound.
+
+This soundboard originated from [mlg-soundboard](https://github.com/tst/mlg-soundboard) and it
+still uses the Web Sound API. 
 
 
 ## Installation
 
-You don't need to install anything. Just visit [soundboard.panictank.net](http://soundboard.panictank.net). 
-If you want to create your own soundboard pull this git repository. Change the sound & sourcefiles in board.js, add an own loading.gif
-and host your own soundboard. 
+1. Pull this Repo
+2. Run `npm install` to install the local dependencies
 
 ## Usage
 
-* Open your browser
-* Go to [soundboard.panictank.net](http://soundboard.panictank.net)
+1. Customize it as described below
+2. Run `npm start` to spin up the server (a browser window opens automatically)
 
-It's tested on Firefox 32.0 (current version) and Chrome 34 (current) and will work likely for future version.
-Other browsers don't seem to work because they haven't implemented the Web Audio API, yet.
+I've tested it on Firefox 67 (current version) and Chrome 74 (current) and will work likely for
+future version.
 
 ## Alternative implementations
 
+* [soundboard.panictank.net](http://soundboard.panictank.net) by [tst](https://github.com/tst)
 * [Illuminati Soundboard (iOS)](https://itunes.apple.com/us/app/illuminati-soundboard/id939112106?mt=8&uo) by Thomas Quinn
 * [kingly.sx](http://kingly.sx/) offers the same soundboard with even more sounds, check it out (on Github: [kinglysx](https://github.com/kinglysx))
 
 
 ## Thanks
 
-* Thanks to [leee](https://github.com/leee) for fixing an incorrect source link. 
-* Thanks to [torleif](https://github.com/torleif) for adding a feature to stop the sound
-* Thanks to [daylostar](https://github.com/daylostar) for letting me know about the shut down of kingly.sx
-* Thanks to [Hydrothermal](https://github.com/Hydrothermal) for optimizing the code a bit
-* Thanks to numerous people from [/r/montageparodies](http://www.reddit.com/r/montageparodies) for idea for new sounds
+* Thanks to [tst](https://github.com/tst) and all that helped him developing the [MLG Soundboard](https://github.com/tst/mlg-soundboard)
 
 ## Requests / Questions
 
-If you have any questions or requests open an issue, message me on reddit ([/u/tst__](http://www.reddit.com/message/compose/?to=tst__)) or shout really really loud out your window.
+If you have any questions or requests open an issue or shout really really loud out your window.
 
+## The local server
 
+The soundboard uses [live-server](https://www.npmjs.com/package/live-server), as it automatically
+reloads the soundboard on file changes and automatically opens a window when spinning it up.
+
+## Update sounds
+
+Put all sounds in sub directories in the `sounds` directory. The sub directories are used as sub
+categories. If the category is switched the short cuts will be remapped on the category you are
+viewing. The sound structure will be updated every time you run `npm start`
+
+## Use your own title
+
+Copy `js/example.customisations.json` to `js/customisations.json` and edit the title as you want it.
+You can also disable or enable controls - currently only drive.
+
+## Search through titles
+
+You can now search through every category. You can focus the field by pressing `space`. Your
+results will can be seen under the search tab. All hotkeys will be remapped on your search
+results when viewing them.
+
+## Hotkeys
+
+Use `space` to focus the search field.
+
+Use `enter` to play a random tile from the currently chosen tab.
+
+Use `backspace` or `escape` to stop all playing titles.
+
+Use `arrow left` or `arrow right` to go to the next or previous tab.
+
+Use `arrow up` or `arrow down` to increase or decrease the volume.
+
+Use `control` to toggle the repeat next sound button.
+
+Use the key presented on the buttons to trigger the button.
+
+All hotkeys are deactivated if you are typing in an input field.
+
+## Unit tests
+
+Unit tests can be run through running `npm test`. The test are run by the
+[JEST testing framework](https://jestjs.io/). As the code itself is written in vanilla JS the
+imports of the files into the test suite look kind of hacky. If you know any better way,
+please submit a PR to change it :)

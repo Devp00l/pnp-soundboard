@@ -1,4 +1,3 @@
-
 /**
  * Overdrive effect module for the Web Audio API.
  *
@@ -10,7 +9,7 @@
  * @param {number} opts.postCut
  */
 
-function Overdrive (context, opts) {
+function Overdrive(context, opts) {
   this.input = context.createGain();
   this.output = context.createGain();
 
@@ -33,19 +32,18 @@ function Overdrive (context, opts) {
   // Defaults
   var p = this.meta.params;
   opts = opts || {};
-  this._bandpass.frequency.value  = opts.color        || p.color.defaultValue;
-  this._bpWet.gain.value          = opts.preBand      || p.preBand.defaultValue;
-  this._lowpass.frequency.value   = opts.postCut      || p.postCut.defaultValue;
-  this.drive                      = opts.drive        || p.drive.defaultValue;
+  this._bandpass.frequency.value = opts.color || p.color.defaultValue;
+  this._bpWet.gain.value = opts.preBand || p.preBand.defaultValue;
+  this._lowpass.frequency.value = opts.postCut || p.postCut.defaultValue;
+  this.drive = opts.drive || p.drive.defaultValue;
 
   // Inverted preBand value
-  this._bpDry.gain.value = opts.preBand 
+  this._bpDry.gain.value = opts.preBand
     ? 1 - opts.preBand
     : 1 - p.preBand.defaultValue;
 }
 
 Overdrive.prototype = Object.create(null, {
-
   /**
    * AudioNode prototype `connect` method.
    *
@@ -53,8 +51,8 @@ Overdrive.prototype = Object.create(null, {
    */
 
   connect: {
-    value: function (dest) {
-      this.output.connect( dest.input ? dest.input : dest );
+    value: function(dest) {
+      this.output.connect(dest.input ? dest.input : dest);
     }
   },
 
@@ -63,7 +61,7 @@ Overdrive.prototype = Object.create(null, {
    */
 
   disconnect: {
-    value: function () {
+    value: function() {
       this.output.disconnect();
     }
   },
@@ -110,8 +108,10 @@ Overdrive.prototype = Object.create(null, {
 
   preBand: {
     enumerable: true,
-    get: function () { return this._bpWet.gain.value; },
-    set: function (value) {
+    get: function() {
+      return this._bpWet.gain.value;
+    },
+    set: function(value) {
       this._bpWet.gain.setValueAtTime(value, 0);
       this._bpDry.gain.setValueAtTime(1 - value, 0);
     }
@@ -119,25 +119,29 @@ Overdrive.prototype = Object.create(null, {
 
   color: {
     enumerable: true,
-    get: function () { return this._bandpass.frequency.value; },
-    set: function (value) {
+    get: function() {
+      return this._bandpass.frequency.value;
+    },
+    set: function(value) {
       this._bandpass.frequency.setValueAtTime(value, 0);
     }
   },
 
   drive: {
     enumerable: true,
-    get: function () { return this._drive; },
-    set: function (value) {
-      var k = value * 100
-        , n = 22050
-        , curve = new Float32Array(n)
-        , deg = Math.PI / 180;
+    get: function() {
+      return this._drive;
+    },
+    set: function(value) {
+      var k = value * 100,
+        n = 22050,
+        curve = new Float32Array(n),
+        deg = Math.PI / 180;
 
       this._drive = value;
       for (var i = 0; i < n; i++) {
-        var x = i * 2 / n - 1;
-        curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+        var x = (i * 2) / n - 1;
+        curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
       }
       this._ws.curve = curve;
     }
@@ -145,12 +149,13 @@ Overdrive.prototype = Object.create(null, {
 
   postCut: {
     enumerable: true,
-    get: function () { return this._lowpass.frequency.value; },
-    set: function (value) {
+    get: function() {
+      return this._lowpass.frequency.value;
+    },
+    set: function(value) {
       this._lowpass.frequency.setValueAtTime(value, 0);
     }
   }
-
 });
 
 /**
@@ -158,4 +163,3 @@ Overdrive.prototype = Object.create(null, {
  */
 
 /* module.exports = Overdrive; */
-
