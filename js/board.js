@@ -418,9 +418,11 @@ function playRandom() {
   const sounds = isSearch ? searchResults : allSounds[currentCat];
   const randIndex = Math.floor(Math.random() * sounds.length);
   const randomSound = sounds[randIndex];
+  const id = usableCat(currentCat) + "-" + randIndex;
+  $(`#${id}`).focus();
   playSound(
     isSearch ? randomSound : makeSoundPath(currentCat, randomSound),
-    usableCat(currentCat) + "-" + randIndex
+    id
   );
 }
 
