@@ -448,8 +448,8 @@ document.onkeydown = function(e) {
   const target = e.target;
   const key = e.key;
 
-  if (code === 13) {
-    // Enter
+  if (code === 16) {
+    // Shift
     playRandom();
   }
 
@@ -478,8 +478,8 @@ document.onkeydown = function(e) {
   } else if (code === 40) {
     // Arrow Down
     volumeChange(-1);
-  } else if (code === 32) {
-    // Space
+  } else if (code === 18) {
+    // Alt
     $("#search").focus();
   } else if (key.length === 1) {
     hotButton(key.charCodeAt(0));

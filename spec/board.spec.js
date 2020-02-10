@@ -122,9 +122,9 @@ describe("test board", () => {
       expect(window.stopPlaying).toHaveBeenCalledTimes(2);
     });
 
-    it("calls playRandom on enter", () => {
+    it("calls playRandom on shift", () => {
       spyOn(window, "playRandom");
-      createEvent("Enter", 13);
+      createEvent("Shift", 16);
       expect(window.playRandom).toHaveBeenCalled();
     });
 
@@ -178,11 +178,11 @@ describe("test board", () => {
       gain.value = 10;
     });
 
-    it("focuses search on space", () => {
+    it("focuses search on Alt", () => {
       const search = document.getElementById("search");
       expect(document.activeElement).not.toBe(search);
       expect(document.hasFocus()).toBe(false);
-      createEvent(" ", 32);
+      createEvent("alt", 18);
       expect(document.hasFocus()).toBe(true);
       expect(document.activeElement).toBe(search);
     });

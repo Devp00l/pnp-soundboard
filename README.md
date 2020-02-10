@@ -64,9 +64,9 @@ results when viewing them.
 
 ## Hotkeys
 
-Use `space` to focus the search field.
+Use `alt` to focus the search field.
 
-Use `enter` to play a random tile from the currently chosen tab.
+Use `shift` to play a random tile from the currently chosen tab.
 
 Use `backspace` or `escape` to stop all playing titles.
 
@@ -79,6 +79,9 @@ Use `control` to toggle the repeat next sound button.
 Use the key presented on the buttons to trigger the button.
 
 All hotkeys are deactivated if you are typing in an input field.
+
+After you have clicked some button you can use the hotkeys of your
+browser to trigger the button again by hitting `space` or `enter`.
 
 ## Unit tests
 
