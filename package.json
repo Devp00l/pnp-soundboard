@@ -8,7 +8,8 @@
     "precommit": "pretty-quick --staged",
     "postcommit": "git update-index -g",
     "updateSounds": "node generateSoundJson.js",
-    "start": "npm run updateSounds && live-server",
+    "copyScript": "node copyScript.js",
+    "start": "npm run copyScript && npm run updateSounds && live-server",
     "pretty": "prettier --write \"./**/*.{css,js,html,json}\""
   },
   "repository": {
