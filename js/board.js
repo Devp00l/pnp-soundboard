@@ -6,9 +6,6 @@ var repeat = false; // Toggled by repeat button
 
 window.onload = init;
 
-// Is used for loading in all the buffers which are then played!
-var bList;
-
 // Holds all active buffers. Is used so that we can stop them at all times
 var activeBuffers = [];
 
@@ -23,29 +20,21 @@ var currentCat = ""; // will be replaced with first cat on load
 
 var hotkeys = []; // holds the number representations of pressed keys that can be used as hotkeys
 
-// buffer loader class
-
-function BufferLoader(context, urlList, callback) {
+// buffer loader class - Can't be written in normal class style as test would fail
+function BufferLoader(context, urlList) {
   this.context = context;
   this.urlList = urlList;
-  this.onload = callback;
   this.bufferList = [];
   this.loadCount = 0;
 }
 
-function updateProgress(bar, loading) {
-  loading = Math.floor(loading * 100);
-  bar.attr("aria-valuenow", loading);
-  bar.attr("style", `width: ${loading}%`);
-  bar.html(loading + "%");
-  if (loading === 100) {
-    bar.removeClass("active");
-  }
-}
-
-BufferLoader.prototype.loadBuffer = function(url, index) {
+BufferLoader.prototype.loadBuffer = function(url, index, callback) {
   // Load buffer asynchronously
   const loader = this;
+  if (loader.bufferList[index]) {
+    callback(loader.bufferList[index]);
+    return;
+  }
   const bar = $("#loading-bar2");
   const request = new XMLHttpRequest();
   request.open("GET", url, true);
@@ -60,10 +49,8 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
           return;
         }
         loader.bufferList[index] = buffer;
-        updateProgress(bar, (loader.loadCount + 1) / loader.urlList.length);
-        if (++loader.loadCount == loader.urlList.length) {
-          loader.onload(loader.bufferList);
-        }
+        callback(buffer);
+        return;
       },
       error => {
         console.error("decodeAudioData error", error);
@@ -77,14 +64,6 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
 
   request.send();
 };
-
-BufferLoader.prototype.load = function() {
-  const bar = $("#loading-bar");
-  for (let i = 0; i < this.urlList.length; ++i) {
-    this.loadBuffer(this.urlList[i], i);
-    updateProgress(bar, (i + 1) / this.urlList.length);
-  }
-};
 // END bufferloader class
 
 // BEGIN custom code
@@ -92,9 +71,9 @@ function loadFilesInMemory() {
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
   context = new AudioContext();
 
-  bufferLoader = new BufferLoader(context, soundfiles, finishedLoading);
+  bufferLoader = new BufferLoader(context, soundfiles);
 
-  bufferLoader.load();
+  loadUIElements();
 }
 
 function makeSoundPath(cat, filename) {
@@ -207,16 +186,25 @@ function usableCat(cat) {
 }
 
 function getBufferFromPath(path) {
-  return bList[soundfiles.findIndex(f => f === path)];
+  return new Promise(resolve => {
+    const index = soundfiles.findIndex(f => f === path);
+    bufferLoader.loadBuffer(path, index, buffer => {
+      resolve(buffer);
+    });
+  });
 }
 
 function playSound(path, id) {
-  const buffer = getBufferFromPath(path);
   markSoundPlaying(id);
-  if (!repeat) {
-    window.setTimeout(() => markSoundPlaying(id, true), buffer.duration * 1000);
-  }
-  play(buffer, document.getElementById("gain").value);
+  getBufferFromPath(path).then(buffer => {
+    if (!repeat) {
+      window.setTimeout(
+        () => markSoundPlaying(id, true),
+        buffer.duration * 1000
+      );
+    }
+    play(buffer, document.getElementById("gain").value);
+  });
 }
 
 function markSoundPlaying(id, stopped) {
@@ -240,8 +228,6 @@ function markSoundPlaying(id, stopped) {
 function createSoundButton(config) {
   const btn = document.createElement("button");
   const buttonColor = "btn-default"; // or info
-  const buffer = getBufferFromPath(config.path);
-  btn.title = [config.name, " (", Math.round(buffer.duration), "s)"].join("");
   btn.type = "button";
   if (config.name.length > 33) {
     config.name = config.name.slice(0, 30) + "...";
@@ -258,6 +244,9 @@ function createSoundButton(config) {
     "btn-block",
     "spaced-button"
   );
+  getBufferFromPath(config.path).then(buffer => {
+    btn.title = [config.name, " (", Math.round(buffer.duration), "s)"].join("");
+  });
   const wrapper = createButtonWrapper();
   wrapper.appendChild(btn);
   return wrapper;
@@ -338,18 +327,8 @@ function displayPlayButtons() {
 }
 
 function loadUIElements() {
-  $("#loading").hide();
-
   displayPlayButtons();
   createHotkeyElements();
-}
-
-function finishedLoading(bufferList) {
-  // HACK: Makes the parameter global so that we get access to it.
-  // It is implicitly loaded
-  bList = bufferList;
-
-  loadUIElements();
 }
 
 function IsNumeric(input) {

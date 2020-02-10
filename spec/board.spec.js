@@ -42,12 +42,13 @@ describe("test board", () => {
       expect(search("sth_1")).toEqual(["sounds/cat-1/STh_1.mp3"]);
     });
 
-    it("should show search buttons", () => {
+    it("should show search buttons", async () => {
       search("_1");
       const firstButton = $("#search-0");
       expect(firstButton).not.toEqual({});
+      await getBufferFromPath("sounds/cat-1/STh_1.mp3");
       expect(firstButton[0].outerHTML).toEqual(
-        '<button title="STh_1 (0s)" type="button" id="search-0" class="btn search btn-default btn-block spaced-button"><strong>STh_1</strong><span class="badge hotkey-badge search-key" style="margin-left: 1.2em;">0</span></button>'
+        '<button type="button" id="search-0" class="btn search btn-default btn-block spaced-button" title="STh_1 (0s)"><strong>STh_1</strong><span class="badge hotkey-badge search-key" style="margin-left: 1.2em;">0</span></button>'
       );
     });
 
@@ -78,16 +79,19 @@ describe("test board", () => {
     });
   });
 
-  it("displays the right buttons", () => {
+  it("displays the right buttons", async () => {
     // 0-9 and a-z just dertermine the numeric id that is clicked
+    await getBufferFromPath("sounds/cat-1/STh_1.mp3");
     expect($("#cat-1-0")[0].outerHTML).toEqual(
-      '<button title="STh_1 (0s)" type="button" id="cat-1-0" class="btn cat-1 btn-default btn-block spaced-button"><strong>STh_1</strong><span class="badge hotkey-badge cat-1-key" style="margin-left: 1.2em;">0</span></button>'
+      '<button type="button" id="cat-1-0" class="btn cat-1 btn-default btn-block spaced-button" title="STh_1 (0s)"><strong>STh_1</strong><span class="badge hotkey-badge cat-1-key" style="margin-left: 1.2em;">0</span></button>'
     );
+    await getBufferFromPath("sounds/cat 2/else-1.mp3");
     expect($("#cat-2-0")[0].outerHTML).toEqual(
-      '<button title="else-1 (0s)" type="button" id="cat-2-0" class="btn cat-2 btn-default btn-block spaced-button"><strong>else-1</strong><span class="badge hotkey-badge cat-2-key" style="margin-left: 1.2em;">0</span></button>'
+      '<button type="button" id="cat-2-0" class="btn cat-2 btn-default btn-block spaced-button" title="else-1 (0s)"><strong>else-1</strong><span class="badge hotkey-badge cat-2-key" style="margin-left: 1.2em;">0</span></button>'
     );
+    await getBufferFromPath("sounds/cat 2/else.2.mp3");
     expect($("#cat-2-1")[0].outerHTML).toEqual(
-      '<button title="else.2 (0s)" type="button" id="cat-2-1" class="btn cat-2 btn-default btn-block spaced-button"><strong>else.2</strong><span class="badge hotkey-badge cat-2-key" style="margin-left: 1.2em;">1</span></button>'
+      '<button type="button" id="cat-2-1" class="btn cat-2 btn-default btn-block spaced-button" title="else.2 (0s)"><strong>else.2</strong><span class="badge hotkey-badge cat-2-key" style="margin-left: 1.2em;">1</span></button>'
     );
   });
 
