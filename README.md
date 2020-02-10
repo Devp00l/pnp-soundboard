@@ -25,18 +25,11 @@ still uses the Web Sound API.
 
 ## Usage
 
-1. Customize it as described below
+1. Add sounds into `./sounds/$category/$sound_title.mp3`
 2. Run `npm start` to spin up the server (a browser window opens automatically)
 
 I've tested it on Firefox 67 (current version) and Chrome 74 (current) and will work likely for
 future version.
-
-## Alternative implementations
-
-* [soundboard.panictank.net](http://soundboard.panictank.net) by [tst](https://github.com/tst)
-* [Illuminati Soundboard (iOS)](https://itunes.apple.com/us/app/illuminati-soundboard/id939112106?mt=8&uo) by Thomas Quinn
-* [kingly.sx](http://kingly.sx/) offers the same soundboard with even more sounds, check it out (on Github: [kinglysx](https://github.com/kinglysx))
-
 
 ## Thanks
 
@@ -55,12 +48,13 @@ reloads the soundboard on file changes and automatically opens a window when spi
 
 Put all sounds in sub directories in the `sounds` directory. The sub directories are used as sub
 categories. If the category is switched the short cuts will be remapped on the category you are
-viewing. The sound structure will be updated every time you run `npm start`
+viewing. The sound structure will be updated every time you run `npm start`. That said the sounds
+directory has the following structure `./sounds/${category name}/${sound title}.mp3`
 
 ## Use your own title
 
-Copy `js/example.customisations.json` to `js/customisations.json` and edit the title as you want it.
-You can also disable or enable controls - currently only drive.
+By running `npm start` the `js/example.customisations.json` will be copied to `js/customisations.json`,
+which you can edit to set the title of your soundboard.
 
 ## Search through titles
 
