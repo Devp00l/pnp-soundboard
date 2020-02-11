@@ -53,7 +53,7 @@ BufferLoader.prototype.loadBuffer = function(url, index, callback) {
         return;
       },
       error => {
-        console.error("decodeAudioData error", error);
+        console.error("decodeAudioData error", error, url);
       }
     );
   };

@@ -51,6 +51,37 @@ categories. If the category is switched the short cuts will be remapped on the c
 viewing. The sound structure will be updated every time you run `npm start`. That said the sounds
 directory has the following structure `./sounds/${category name}/${sound title}.mp3`
 
+### What filetypes are supported?
+
+All audio files that can be played in your browser.
+You can see the supported HTML5 audio formats [here](https://en.wikipedia.org/wiki/HTML5_audio#Supported_audio_coding_formats).
+
+That said "mp4" has only worked with the corresponding audio extension `m4a`.
+
+The following audio types have *not* worked with the current chrome version on Linux:
+
+* AIFF
+* AMR
+* WMA <-- Probably missing codecs on my side
+
+The following types have worked:
+
+* AAC
+* FLAC
+* M4A
+* MP3
+* OGG
+* WAV
+* WEBM
+
+### Where to get sounds?
+
+Using [youtube-dl](https://ytdl-org.github.io/youtube-dl/) to get sounds from all [supported](https://ytdl-org.github.io/youtube-dl/supportedsites.html) streaming sides by using the command `youtube-dl -f 'bestaudio' $URL`.
+
+From [soundboard](https://www.soundboard.com/) using [soundboard_dl](https://github.com/jlis/soundboard_dl) to download them via `php dl.php $sound_board_title`..
+
+Alternatively make your own sounds :)
+
 ## Use your own title
 
 By running `npm start` the `js/example.customisations.json` will be copied to `js/customisations.json`,
