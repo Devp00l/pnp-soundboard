@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "test": "jest --watch",
+    "test:ci": "jest",
     "precommit": "pretty-quick --staged",
     "postcommit": "git update-index -g",
     "updateSounds": "node generateSoundJson.js",
