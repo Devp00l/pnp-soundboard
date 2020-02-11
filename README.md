@@ -1,5 +1,7 @@
 # PnP Soundboard using Web Audio API
 
+![example](soundboard-git-hub.png)
+
 ## Description
 This soundboard offers the following features:
 
