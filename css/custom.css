@@ -11,3 +11,7 @@
 .hotkey-badge {
   float: left;
 }
+
+#tabs {
+  padding: 0;
+}
