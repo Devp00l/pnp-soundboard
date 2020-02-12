@@ -10,7 +10,8 @@
     "postcommit": "git update-index -g",
     "updateSounds": "node generateSoundJson.js",
     "copyScript": "node copyScript.js",
-    "start": "npm run copyScript && npm run updateSounds && live-server",
+    "prepare": "npm run copyScript && npm run updateSounds",
+    "start": "npm run prepare && live-server",
     "pretty": "prettier --write \"./**/*.{css,js,html,json}\""
   },
   "repository": {

@@ -92,6 +92,8 @@ Using [youtube-dl](https://ytdl-org.github.io/youtube-dl/) to get sounds from al
 
 From [soundboard](https://www.soundboard.com/) using [soundboard_dl](https://github.com/jlis/soundboard_dl) to download them via `php dl.php $sound_board_title`..
 
+You can get sounds with  specified license from [soundbible](http://soundbible.com/).
+
 Alternatively make your own sounds :)
 
 ### Use your own title
