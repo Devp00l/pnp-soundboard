@@ -1,6 +1,6 @@
 const fs = require("fs");
-const cpPath = "js/example.customisations.json";
-const path = "js/customisations.json";
+const cpPath = "js/example.customizations.json";
+const path = "js/customizations.json";
 
 if (!fs.existsSync(path)) {
   fs.copyFileSync(cpPath, path);

@@ -5,6 +5,7 @@ eval.apply(this, [
   fs.readFileSync("node_modules/jquery/dist/jquery.min.js").toString()
 ]);
 eval.apply(this, [fs.readFileSync("js/board.js").toString()]);
+settings = { soundDirName: "sounds" };
 eval.apply(this, [
   fs.readFileSync("node_modules/bootstrap/dist/js/bootstrap.min.js").toString()
 ]);

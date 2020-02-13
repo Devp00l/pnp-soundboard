@@ -1,6 +1,9 @@
 name: Deploy to GitHub Pages
 
 on: 
+  pull_request:
+    branches:
+      - master
   push:
     branches:
       - master
@@ -10,18 +13,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
+    - name: Checkout gh-pages
+      uses: actions/checkout@gh-pages
 
-    - name: Build
+    - name: Pulling master
+      run: git pull origin/master
+
+    - name: Commit changes
       run: |
-        npm install
-        cp -r example_sounds sounds
-        npm run prepare
-
-    - name: Deploy
-      uses: JamesIves/github-pages-deploy-action@releases/v3
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -m "Pull from master" -a
+    
+    - name: Push changes
+      uses: ad-m/github-push-action@master
       with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages
-        FOLDER: dist
+        github_token: ${{ secrets.GITHUB_TOKEN }}

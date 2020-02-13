@@ -1,33 +1,30 @@
 {
-  "name": "mlg-soundboard",
-  "version": "1.0.0",
-  "description": "## Description This features a simple soundboard using Web Sound API and distortion effects.  You can find the distortion effects on https://github.com/web-audio-components/overdrive.",
+  "name": "pnp-soundboard",
+  "version": "1.0.3",
+  "description": "## It features a fast and easy to use soundboard using Web Sound API.",
   "private": true,
   "scripts": {
     "test": "jest --watch",
     "test:ci": "jest",
     "precommit": "pretty-quick --staged",
     "postcommit": "git update-index -g",
-    "updateSounds": "node generateSoundJson.js",
-    "copyScript": "node copyScript.js",
-    "prepare": "npm run copyScript && npm run updateSounds",
-    "start": "npm run prepare && live-server",
+    "updateSounds": "node copyScript.js && node generateSoundJson.js",
+    "start": "npm run updateSounds && ./node_modules/live-server/live-server.js",
     "pretty": "prettier --write \"./**/*.{css,js,html,json}\""
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/devp00l/mlg-soundboard.git"
+    "url": "git+https://github.com/devp00l/pnp-soundboard.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/devp00l/mlg-soundboard/issues"
+    "url": "https://github.com/devp00l/pnp-soundboard/issues"
   },
-  "homepage": "https://github.com/devp00l/mlg-soundboard#readme",
+  "homepage": "https://devp00l.github.io/pnp-soundboard",
   "devDependencies": {
     "jest": "^24.1.0",
     "jest-cli": "^24.1.0",
-    "live-server": "^1.2.1",
     "prettier": "^1.16.4",
     "pretty-quick": "^1.10.0",
     "request": "^2.88.0",
@@ -35,9 +32,18 @@
   },
   "dependencies": {
     "bootstrap": "3.4.1",
+    "live-server": "^1.2.1",
     "fs": "0.0.1-security",
     "fs-walk": "0.0.2",
-    "jquery": "^3.3.1",
+    "jquery": "3.4.1",
     "path": "^0.12.7"
-  }
+  },
+  "bundledDependencies": [
+    "path",
+    "bootstrap",
+    "fs",
+    "jquery",
+    "live-server",
+    "fs-walk"
+  ]
 }

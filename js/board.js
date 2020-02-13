@@ -1,5 +1,6 @@
 var context;
 var bufferLoader;
+var settings;
 
 // default options
 var repeat = false; // Toggled by repeat button
@@ -77,7 +78,7 @@ function loadFilesInMemory() {
 }
 
 function makeSoundPath(cat, filename) {
-  return ["sounds", cat, filename].join("/");
+  return [settings.soundDirName, cat, filename].join("/");
 }
 
 function fullPathCat(cat) {
@@ -112,13 +113,14 @@ function gotSoundJson(json) {
 }
 
 function init() {
-  $.getJSON("js/customisations.json", json => {
+  $.getJSON("js/customizations.json", json => {
     $("#soundboard-title").text(json.title);
     $("#soundboard-head-title").text(json.title);
-  });
-  $.getJSON("sounds.json", gotSoundJson);
-  $("#search").on("input", function() {
-    search($(this).val());
+    settings = json;
+    $.getJSON(`${settings.soundDirName}.json`, gotSoundJson);
+    $("#search").on("input", function() {
+      search($(this).val());
+    });
   });
 }
 

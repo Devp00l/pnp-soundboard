@@ -1,10 +1,6 @@
 # mac stuff
 .DS_Store
 
-# npm stuff
-package-lock.json
-node_modules
-
 # custom stuff
 sounds.json
 /sounds/*
