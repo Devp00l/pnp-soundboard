@@ -4,6 +4,10 @@ TODO: Update image to match new 1.1.0 version
 ![example](soundboard-git-hub.png)
 --->
 
+## Demo
+
+You can find the demo [here](https://devp00l.github.io/pnp-soundboard).
+
 ## Description
 The focus of this soundboard is to be able to play sounds during pen and paper as quickly as possible.
 
