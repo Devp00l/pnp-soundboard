@@ -1,6 +1,6 @@
 {
   "name": "pnp-soundboard",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "## It features a fast and easy to use soundboard using Web Sound API.",
   "private": true,
   "scripts": {

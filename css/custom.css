@@ -12,6 +12,18 @@
   float: left;
 }
 
+.play-btn-group {
+  width: 100%;
+}
+
+.play-button {
+  width: 85%;
+}
+
+.file-stop-btn {
+  width: 15%;
+}
+
 #tabs {
   padding: 0;
 }

@@ -1,6 +1,8 @@
 # PnP Soundboard using Web Audio API
-
+<!---
+TODO: Update image to match new 1.1.0 version
 ![example](soundboard-git-hub.png)
+--->
 
 ## Description
 The focus of this soundboard is to be able to play sounds during pen and paper as quickly as possible.
@@ -16,6 +18,7 @@ This soundboard offers the following features:
 * Works OS independent
 * Can be used with just a browser (server-client infrastructure)
 * Uses Web Sound API (HTML5)
+* Parallel played sounds
 
 ## Installation
 

@@ -33,6 +33,23 @@ gotSoundJson({
 });
 
 describe("test board", () => {
+  const createEvent = (key, keyCode) => {
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: key,
+        keyCode: keyCode
+      })
+    );
+  };
+  const expectBtnOuterHtml = (btn, cat, index, title, hotkey) => {
+    let html = `<button type="button" id="${cat}-${index}" class="${cat} btn btn-default spaced-button play-button" title="Plays ${title} (0s)"><strong>${title}</strong>`;
+    if (hotkey >= 0) {
+      html += `<span class="badge hotkey-badge ${cat}-key" style="margin-left: 1.2em;">${hotkey}</span>`;
+    }
+    html += "</button>";
+    expect(btn[0].outerHTML).toEqual(html);
+  };
+
   describe("search", () => {
     it("should search one word", () => {
       expect(search("_1")).toEqual(["sounds/cat-1/STh_1.mp3"]);
@@ -46,11 +63,8 @@ describe("test board", () => {
     it("should show search buttons", async () => {
       search("_1");
       const firstButton = $("#search-0");
-      expect(firstButton).not.toEqual({});
       await getBufferFromPath("sounds/cat-1/STh_1.mp3");
-      expect(firstButton[0].outerHTML).toEqual(
-        '<button type="button" id="search-0" class="btn search btn-default btn-block spaced-button" title="STh_1 (0s)"><strong>STh_1</strong><span class="badge hotkey-badge search-key" style="margin-left: 1.2em;">0</span></button>'
-      );
+      expectBtnOuterHtml(firstButton, "search", 0, "STh_1", 0);
     });
 
     it("should search two words", () => {
@@ -83,17 +97,11 @@ describe("test board", () => {
   it("displays the right buttons", async () => {
     // 0-9 and a-z just dertermine the numeric id that is clicked
     await getBufferFromPath("sounds/cat-1/STh_1.mp3");
-    expect($("#cat-1-0")[0].outerHTML).toEqual(
-      '<button type="button" id="cat-1-0" class="btn cat-1 btn-default btn-block spaced-button" title="STh_1 (0s)"><strong>STh_1</strong><span class="badge hotkey-badge cat-1-key" style="margin-left: 1.2em;">0</span></button>'
-    );
+    expectBtnOuterHtml($("#cat-1-0"), "cat-1", 0, "STh_1", 0);
     await getBufferFromPath("sounds/cat 2/else-1.mp3");
-    expect($("#cat-2-0")[0].outerHTML).toEqual(
-      '<button type="button" id="cat-2-0" class="btn cat-2 btn-default btn-block spaced-button" title="else-1 (0s)"><strong>else-1</strong><span class="badge hotkey-badge cat-2-key" style="margin-left: 1.2em;">0</span></button>'
-    );
+    expectBtnOuterHtml($("#cat-2-0"), "cat-2", 0, "else-1");
     await getBufferFromPath("sounds/cat 2/else.2.mp3");
-    expect($("#cat-2-1")[0].outerHTML).toEqual(
-      '<button type="button" id="cat-2-1" class="btn cat-2 btn-default btn-block spaced-button" title="else.2 (0s)"><strong>else.2</strong><span class="badge hotkey-badge cat-2-key" style="margin-left: 1.2em;">1</span></button>'
-    );
+    expectBtnOuterHtml($("#cat-2-1"), "cat-2", 1, "else.2");
   });
 
   it("should change cats as planned", () => {
@@ -108,16 +116,65 @@ describe("test board", () => {
     expect(currentCat).toBe("cat-1");
   });
 
-  describe("hotkeys", () => {
-    const createEvent = (key, keyCode) => {
-      document.dispatchEvent(
-        new KeyboardEvent("keydown", {
-          key: key,
-          keyCode: keyCode
-        })
-      );
+  describe("playing", () => {
+    const clickSoundBtn = async id => {
+      const index = soundIds.indexOf(id);
+      $(`#${id}`).click();
+      return getBufferFromPath(`#${soundfiles[index]}`);
     };
 
+    beforeEach(() => {
+      createEvent("Escape", 27); // Stops all playing sounds
+      spyOn(window, "playSound").and.callThrough();
+      spyOn(window, "markSoundPlaying").and.callThrough();
+    });
+
+    it("plays a sound", async () => {
+      await clickSoundBtn("cat-1-0");
+      expect(window.playSound).toBeCalledWith(
+        "sounds/cat-1/STh_1.mp3",
+        "cat-1-0"
+      );
+      expect(window.playSound).toHaveBeenCalledTimes(1);
+      expect(window.markSoundPlaying).toBeCalledWith("cat-1-0");
+      // Every sounds has two buffers (GainNode and AudioBufferSourceNode) which are connected.
+      expect(activeBuffers.length).toEqual(2);
+    });
+
+    it("plays a sound multiple times", async () => {
+      await clickSoundBtn("cat-1-0");
+      await clickSoundBtn("cat-1-0");
+      expect(activeBuffers.length).toEqual(4);
+    });
+
+    it("plays multiple sounds", async () => {
+      await clickSoundBtn("cat-1-0");
+      await clickSoundBtn("cat-1-0");
+      await clickSoundBtn("cat-1-1");
+      expect(activeBuffers.length).toEqual(6);
+    });
+
+    it("stops all running sounds", async () => {
+      await clickSoundBtn("cat-1-0");
+      await clickSoundBtn("cat-1-0");
+      await clickSoundBtn("cat-1-1");
+      $("#stop-all-sounds").click();
+      expect(activeBuffers.length).toEqual(0);
+    });
+
+    it("plays and stop individual files", async () => {
+      await clickSoundBtn("cat-1-0");
+      await clickSoundBtn("cat-1-0");
+      await clickSoundBtn("cat-1-1");
+      $("#stop-cat-1-0").click();
+      expect(
+        activeBuffers.every(b => b.path !== "sounds/cat-1/STh_1.mp3")
+      ).toBe(true);
+      expect(activeBuffers.length).toEqual(2);
+    });
+  });
+
+  describe("hotkeys", () => {
     it("calls stopPlaying on escape and backspace", () => {
       spyOn(window, "stopPlaying");
       createEvent("Escape", 27);

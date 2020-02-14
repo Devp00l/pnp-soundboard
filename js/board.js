@@ -14,6 +14,7 @@ var activeBuffers = [];
 var allSounds = {}; // Will be replaced with data contained in sounds.json
 var markedIds = [];
 var searchResults = [];
+var searchIds = {}; // Maps ids to a file path
 var soundfiles = []; // will be extracted from allSounds
 var soundIds = []; // will be extracted from allSounds
 var cats = []; // will be extracted from allSounds
@@ -105,6 +106,7 @@ function gotSoundJson(json) {
   allSounds = json;
   cats = Object.keys(json);
   soundfiles = fullPath();
+  searchResults = soundfiles;
   soundIds = fullIds();
   createCategoryTabs();
   setCurrentCat(cats[0]);
@@ -172,14 +174,19 @@ function getTabContentId(cat) {
 
 function createCategoryButttonBadges(cat) {
   const catClass = usableCat(cat);
-  $("#" + getTabContentId(cat) + " button").each((i, e) => {
+  $(`#${getTabContentId(cat)} button.${cat}`).each((i, e) => {
     $(e).append(createBadge(catClass, i));
+    markBtnById(e.id);
   });
 }
 
 function createButtonWrapper() {
   const wrapper = document.createElement("div");
   $(wrapper).addClass("col-xs-12 col-sm-6 col-md-4");
+  const btnGroup = document.createElement("div");
+  btnGroup.classList.add("btn-group", "play-btn-group");
+  btnGroup.role = "group";
+  wrapper.appendChild(btnGroup);
   return wrapper;
 }
 
@@ -197,39 +204,86 @@ function getBufferFromPath(path) {
 }
 
 function playSound(path, id) {
-  markSoundPlaying(id);
   getBufferFromPath(path).then(buffer => {
     if (!repeat) {
       window.setTimeout(
         () => markSoundPlaying(id, true),
         buffer.duration * 1000
       );
+    } else {
+      markedIds.push(id + "_repeat");
     }
-    play(buffer, document.getElementById("gain").value);
+    play(buffer, document.getElementById("gain").value, path);
+    markSoundPlaying(id);
   });
 }
 
-function markSoundPlaying(id, stopped) {
-  const button = $("#" + id);
-  const notPlaying = "btn-default";
-  const playing = "btn-danger";
+function markSoundPlaying(id, stopped, force) {
   if (stopped) {
-    markedIds.splice(markedIds.indexOf(id), 1);
-    if (!markedIds.includes(id)) {
-      button.removeClass(playing);
-      button.addClass(notPlaying);
+    const shadowId = findShadowId(id);
+    _handleStoppedIds(id, force);
+    if (shadowId) {
+      _handleStoppedIds(shadowId, force);
     }
   } else {
     markedIds.push(id);
-    button.addClass(playing);
-    button.removeClass(notPlaying);
+  }
+  markBtnById(id);
+}
+
+function findShadowId(id) {
+  // An Id can have a sibling in search
+  // If it's an search id it has a sibling in a category
+  const path = getPathFromId(id);
+  return id.startsWith("search")
+    ? soundIds[soundfiles.indexOf(path)]
+    : Object.keys(searchIds).find(sId => searchIds[sId] === path);
+}
+
+function _handleStoppedIds(id, force) {
+  const rid = id + "_repeat";
+  if (force) {
+    markedIds = markedIds.filter(marked => marked !== id && marked !== rid);
+  } else if (markedIds.includes(id)) {
+    markedIds.splice(markedIds.indexOf(id), 1);
+  }
+}
+
+function markBtnById(id) {
+  const isInUse = someId =>
+    markedIds.includes(someId) || markedIds.includes(`${someId}_repeat`);
+  let inUse = isInUse(id);
+  const shadowId = findShadowId(id);
+  if (shadowId) {
+    inUse = inUse || isInUse(shadowId);
+    _markBtnById(shadowId, inUse);
+  }
+  _markBtnById(id, inUse);
+}
+
+function _markBtnById(id, inUse) {
+  const button = $("#" + id);
+  if (!button) {
+    return;
+  }
+  const changeClasses = (btn, remove, add) => {
+    btn.removeClass(remove);
+    btn.addClass(add);
+  };
+  const stopBtn = $("#stop-" + id);
+  if (inUse && !button.hasClass("active")) {
+    button.addClass("active");
+    changeClasses(stopBtn, "btn-disabled disabled", "btn-danger");
+  } else if (!inUse && button.hasClass("active")) {
+    button.removeClass("active");
+    changeClasses(stopBtn, "btn-danger", "btn-disabled disabled");
   }
 }
 
 // {id, name, class, path}
 function createSoundButton(config) {
+  const addClasses = (e, classes) => e.classList.add(...classes.split(" "));
   const btn = document.createElement("button");
-  const buttonColor = "btn-default"; // or info
   btn.type = "button";
   if (config.name.length > 33) {
     config.name = config.name.slice(0, 30) + "...";
@@ -239,18 +293,27 @@ function createSoundButton(config) {
   btn.onclick = function() {
     playSound(config.path, config.id);
   };
-  btn.classList.add(
-    "btn",
-    config.class,
-    buttonColor,
-    "btn-block",
-    "spaced-button"
-  );
+  // spaced-button
+  addClasses(btn, `${config.class} btn btn-default spaced-button play-button`);
   getBufferFromPath(config.path).then(buffer => {
-    btn.title = [config.name, " (", Math.round(buffer.duration), "s)"].join("");
+    btn.title = `Plays ${config.name} (${Math.round(buffer.duration)}s)`;
   });
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  addClasses(
+    deleteBtn,
+    "btn spaced-button file-stop-btn btn-disabled disabled"
+  );
+  deleteBtn.id = `stop-${config.id}`;
+  deleteBtn.title = `Stops ${config.name}`;
+  deleteBtn.onclick = () => stopPlaying(config.id);
+  const deleteIcon = document.createElement("i");
+  deleteBtn.id = `stop-${config.id}`;
+  addClasses(deleteIcon, "glyphicon glyphicon-stop");
+  deleteBtn.appendChild(deleteIcon);
   const wrapper = createButtonWrapper();
-  wrapper.appendChild(btn);
+  wrapper.childNodes[0].appendChild(btn);
+  wrapper.childNodes[0].appendChild(deleteBtn);
   return wrapper;
 }
 
@@ -310,6 +373,10 @@ function createCategorySoundButtons(cat, files) {
 
 function createSearchSoundButtons(files) {
   tabContentId = getTabContentId("search");
+  searchIds = {};
+  files.forEach((path, i) => {
+    searchIds[`search-${i}`] = path;
+  });
   $("#" + tabContentId).empty();
   internalCategorySoundButtons(tabContentId, files, (path, i) => ({
     id: "search-" + i,
@@ -333,7 +400,7 @@ function loadUIElements() {
   createHotkeyElements();
 }
 
-function IsNumeric(input) {
+function isNumeric(input) {
   return input - 0 == input && ("" + input).trim().length > 0;
 }
 
@@ -351,17 +418,19 @@ function toggleRepeat() {
   }
 }
 
-function play(buffer, gain) {
+function play(buffer, gain, path) {
   const source = context.createBufferSource();
   source.buffer = buffer;
   if (repeat) {
     source.loop = true;
     toggleRepeat();
   }
+  source.path = path;
   activeBuffers.push(source);
 
   const gainNode = context.createGain();
-  gainNode.gain.value = IsNumeric(gain) && gain > 0 ? gain / 100 : 0;
+  gainNode.gain.value = isNumeric(gain) && gain > 0 ? gain / 100 : 0;
+  gainNode.path = path;
   activeBuffers.push(gainNode);
 
   source.connect(gainNode);
@@ -369,14 +438,33 @@ function play(buffer, gain) {
   source.start(0);
 }
 
-function stopPlaying() {
-  for (let i = 0; i < activeBuffers.length; i++) {
-    activeBuffers[i].disconnect(0);
+function stopPlaying(id) {
+  if (!id) {
+    activeBuffers.forEach(b => b.disconnect(0));
+    activeBuffers = [];
+    markedIds.slice(0).forEach(id => {
+      markSoundPlaying(id, true, true);
+    });
+  } else {
+    stopPlayingFile(id);
   }
-  markedIds.slice(0).forEach(id => {
-    markSoundPlaying(id, true);
-  });
-  activeBuffers = [];
+}
+
+function stopPlayingFile(id) {
+  const path = getPathFromId(id);
+  activeBuffers
+    .filter(b => b.path === path)
+    .forEach(b => {
+      b.disconnect(0);
+    });
+  activeBuffers = activeBuffers.filter(b => b.path !== path);
+  markSoundPlaying(id, true, true);
+}
+
+function getPathFromId(id) {
+  return id.startsWith("search")
+    ? searchIds[id]
+    : soundfiles[soundIds.indexOf(id)];
 }
 
 function nextCat() {

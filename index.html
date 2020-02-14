@@ -41,6 +41,7 @@
           <div class="btn-group" role="group">
             <a
               class="btn btn-danger"
+              id="stop-all-sounds"
               title="Stops all sounds [esc] or [backspace]"
               onclick="stopPlaying()"
             >
@@ -48,6 +49,7 @@
             </a>
             <a
               class="btn btn-primary"
+              id="play-random-sound"
               title="Play random sound [shift]"
               onclick="playRandom()"
             >
@@ -56,13 +58,14 @@
             <a
               class="btn btn-warning"
               id="repeat"
-              title="Repeat next sound forever [control triggers button]"
+              title="Repeat next sound forever [control]"
               onclick="toggleRepeat()"
             >
               <i class="glyphicon glyphicon-repeat"></i>
             </a>
             <a
               class="btn btn-default"
+              id="previous-cat"
               title="Switch to previous category [Arrow left]"
               onclick="previousCat()"
             >
@@ -71,6 +74,7 @@
             <a
               class="btn btn-default"
               title="Switch to next category [Arrow right]"
+              id="next-cat"
               onclick="nextCat()"
             >
               <i class="glyphicon glyphicon-arrow-right"></i>
