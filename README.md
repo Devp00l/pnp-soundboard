@@ -105,7 +105,7 @@ Alternatively make your own sounds :)
 
 ### Use your own title
 
-By running `npm start` the `js/example.customisations.json` will be copied to `js/customisations.json`,
+By running `npm start` the `js/example.customizations.json` will be copied to `js/customizations.json`,
 which you can edit to set the title of your soundboard.
 
 ### Search through titles
