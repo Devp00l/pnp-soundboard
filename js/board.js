@@ -372,7 +372,7 @@ function createCategorySoundButtons(cat, files) {
 }
 
 function createSearchSoundButtons(files) {
-  tabContentId = getTabContentId("search");
+  const tabContentId = getTabContentId("search");
   searchIds = {};
   files.forEach((path, i) => {
     searchIds[`search-${i}`] = path;
