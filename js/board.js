@@ -321,7 +321,7 @@ function setCat(cat) {
   currentCat = cat;
 }
 
-function createCatgoryTab(cat) {
+function createCategoryTab(cat) {
   const catClass = usableCat(cat);
   const tabButtonId = catClass + "-tab-btn";
   const tabContentId = getTabContentId(cat);
@@ -346,8 +346,8 @@ function createCatgoryTab(cat) {
 }
 
 function createCategoryTabs() {
-  cats.forEach(cat => createCatgoryTab(cat));
-  createCatgoryTab("search");
+  cats.forEach(cat => createCategoryTab(cat));
+  createCategoryTab("search");
 }
 
 function internalCategorySoundButtons(tabContentId, files, btnConfig) {
