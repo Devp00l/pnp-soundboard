@@ -513,13 +513,35 @@ function volumeChange(changeBy) {
   gain.value = val;
 }
 
+// Named key codes for easier readability
+const KEYS = {
+  SHIFT: 16,
+  CONTROL: 17,
+  ALT: 18,
+  ESCAPE: 27,
+  BACKSPACE: 8,
+  LEFT: 37,
+  UP: 38,
+  RIGHT: 39,
+  DOWN: 40
+};
+
 // hitting escape or enter will stop all sounds
+const keyBindings = {
+  [KEYS.CONTROL]: toggleRepeat,
+  [KEYS.LEFT]: previousCat,
+  [KEYS.RIGHT]: nextCat,
+  [KEYS.UP]: () => volumeChange(1),
+  [KEYS.DOWN]: () => volumeChange(-1),
+  [KEYS.ALT]: () => $("#search").focus()
+};
+
 document.onkeydown = function(e) {
   const code = e.keyCode;
   const target = e.target;
   const key = e.key;
 
-  if (code === 16) {
+  if (code === KEYS.SHIFT) {
     // Shift
     playRandom();
   }
@@ -531,27 +553,11 @@ document.onkeydown = function(e) {
     return;
   }
 
-  if ([27, 8].includes(code)) {
+  if ([KEYS.ESCAPE, KEYS.BACKSPACE].includes(code)) {
     // Escape, Backspace
     stopPlaying();
-  } else if (code === 17) {
-    // Control
-    toggleRepeat();
-  } else if (code === 37) {
-    // Arrow Left
-    previousCat();
-  } else if (code === 39) {
-    // Arrow Right
-    nextCat();
-  } else if (code === 38) {
-    // Arrow Up
-    volumeChange(1);
-  } else if (code === 40) {
-    // Arrow Down
-    volumeChange(-1);
-  } else if (code === 18) {
-    // Alt
-    $("#search").focus();
+  } else if (keyBindings[code]) {
+    keyBindings[code]();
   } else if (key.length === 1) {
     hotButton(key.charCodeAt(0));
   }
